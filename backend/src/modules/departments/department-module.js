@@ -12,7 +12,8 @@ const initializeHandler = async () => {
       headers: API_HEADERS,
     });
     try {
-      json.data = response.data;
+      // @TODO: Figure out where this data should be stored.
+      //json.data = response.data;
     }
     catch(e) {
       errorHandler(response.data.record.payload);
