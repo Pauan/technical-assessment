@@ -50,6 +50,13 @@ const addOrUpdateStudent = async (payload) => {
     return rows[0];
 }
 
+const deleteStudent = async (id) => {
+    const query = "SELECT * FROM student_delete($1)";
+    const queryParams = [id];
+    const { rows } = await processDBRequest({ query, queryParams });
+    return rows[0];
+}
+
 const findStudentDetail = async (id) => {
     const query = `
         SELECT
@@ -117,5 +124,6 @@ module.exports = {
     addOrUpdateStudent,
     findStudentDetail,
     findStudentToSetStatus,
-    findStudentToUpdate
+    findStudentToUpdate,
+    deleteStudent
 };

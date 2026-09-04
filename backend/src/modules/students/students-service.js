@@ -1,5 +1,5 @@
 const { ApiError, sendAccountVerificationEmail } = require("../../utils");
-const { findAllStudents, findStudentDetail, findStudentToSetStatus, addOrUpdateStudent } = require("./students-repository");
+const { findAllStudents, findStudentDetail, findStudentToSetStatus, addOrUpdateStudent, deleteStudent } = require("./students-repository");
 const { findUserById } = require("../../shared/repository");
 
 const checkStudentId = async (id) => {
@@ -58,6 +58,15 @@ const updateStudent = async (payload) => {
     return { message: result.message };
 }
 
+const removeStudent = async (id) => {
+    const result = await deleteStudent(id);
+    if (!result.status) {
+        throw new ApiError(500, result.message);
+    }
+
+    return { message: result.message };
+}
+
 const setStudentStatus = async ({ userId, reviewerId, status }) => {
     await checkStudentId(userId);
 
@@ -75,4 +84,5 @@ module.exports = {
     addNewStudent,
     setStudentStatus,
     updateStudent,
+    removeStudent,
 };

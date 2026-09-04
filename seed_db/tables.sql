@@ -178,7 +178,7 @@ CREATE TABLE user_leave_policy (
 -- functions
 DROP FUNCTION IF EXISTS staff_add_update(JSONB);
 CREATE OR REPLACE FUNCTION public.staff_add_update(data jsonb)
-RETURNS TABLE("userId" INTEGER, status boolean, message TEXT, description TEXT) 
+RETURNS TABLE("userId" INTEGER, status boolean, message TEXT, description TEXT)
 LANGUAGE 'plpgsql'
 AS $BODY$
 
@@ -278,7 +278,7 @@ BEGIN
         qualification = _qualification,
         experience = _experience,
         current_address = _currentAddress,
-        permanent_address = _permanentAddress, 
+        permanent_address = _permanentAddress,
         father_name = _fatherName,
         mother_name = _motherName,
         emergency_phone = _emergencyPhone
@@ -297,7 +297,7 @@ $BODY$;
 --student add/update
 DROP FUNCTION IF EXISTS student_add_update(JSONB);
 CREATE OR REPLACE FUNCTION public.student_add_update(data jsonb)
-RETURNS TABLE("userId" INTEGER, status boolean, message TEXT, description TEXT) 
+RETURNS TABLE("userId" INTEGER, status boolean, message TEXT, description TEXT)
 LANGUAGE 'plpgsql'
 AS $BODY$
 
@@ -406,7 +406,7 @@ BEGIN
         section_name  =_sectionName,
         roll = _roll,
         current_address = _currentAddress,
-        permanent_address = _permanentAddress, 
+        permanent_address = _permanentAddress,
         father_name = _fatherName,
         father_phone = _fatherPhone,
         mother_name = _motherName,
@@ -422,6 +422,29 @@ EXCEPTION
     WHEN OTHERS THEN
         RETURN QUERY
             SELECT _userId::INTEGER, false, 'Unable to ' || _operationType || ' student', SQLERRM;
+END;
+$BODY$;
+
+
+--student delete
+DROP FUNCTION IF EXISTS student_delete(INTEGER);
+CREATE OR REPLACE FUNCTION public.student_delete(_userId INTEGER)
+RETURNS TABLE("userId" INTEGER, status boolean, message TEXT, description TEXT)
+LANGUAGE 'plpgsql'
+AS $BODY$
+BEGIN
+    DELETE FROM user_profiles
+    WHERE user_id = _userId;
+
+    DELETE FROM users
+    WHERE id = _userId;
+
+    RETURN QUERY
+        SELECT _userId, true, 'Student deleted successfully', NULL;
+EXCEPTION
+    WHEN OTHERS THEN
+        RETURN QUERY
+            SELECT _userId, false, 'Could not find student', SQLERRM;
 END;
 $BODY$;
 
@@ -613,10 +636,10 @@ BEGIN
 
     --celebrations
     WITH _celebrations AS (
-        SELECT 
-            t1.id AS "userId", 
-            t1.name AS user, 
-            'Happy Birthday!' AS event, 
+        SELECT
+            t1.id AS "userId",
+            t1.name AS user,
+            'Happy Birthday!' AS event,
             t2.dob AS "eventDate"
         FROM users t1
         JOIN user_profiles t2 ON t1.id = t2.user_id
@@ -628,16 +651,16 @@ BEGIN
 
         UNION ALL
 
-        SELECT 
-            t1.id AS "userId", 
-            t1.name AS user, 
+        SELECT
+            t1.id AS "userId",
+            t1.name AS user,
             'Happy ' ||
                 CASE
                     WHEN t1.role_id = 3 THEN
                         EXTRACT(YEAR FROM age(now(), t2.admission_dt))
                     ELSE
                         EXTRACT(YEAR FROM age(now(), t2.join_dt))
-                END || ' Anniversary!' AS event, 
+                END || ' Anniversary!' AS event,
             CASE
                 WHEN t1.role_id = 3 THEN
                     t2.admission_dt
@@ -646,10 +669,10 @@ BEGIN
             END AS "eventDate"
         FROM users t1
         JOIN user_profiles t2 ON t1.id = t2.user_id
-        WHERE 
+        WHERE
         (
-            t1.role_id = 3 
-            AND t2.admission_dt IS NOT NULL 
+            t1.role_id = 3
+            AND t2.admission_dt IS NOT NULL
             AND age(now(), t2.admission_dt) >= INTERVAL '1 year'
             AND (
                 (t2.admission_dt +
@@ -657,10 +680,10 @@ BEGIN
                 BETWEEN now() AND now() + '90 days'
             )
         )
-        OR 
+        OR
         (
-            t1.role_id != 3 
-            AND t2.join_dt IS NOT NULL 
+            t1.role_id != 3
+            AND t2.join_dt IS NOT NULL
             AND age(now(), t2.join_dt) >= INTERVAL '1 year'
             AND (
                 (t2.join_dt +
@@ -677,8 +700,8 @@ BEGIN
 
     --who is out this week
     WITH _month_dates AS (
-        SELECT 
-            DATE_TRUNC('day', now()) AS day_start, 
+        SELECT
+            DATE_TRUNC('day', now()) AS day_start,
             DATE_TRUNC('day', now()) + INTERVAL '30 days' AS day_end
     )
     SELECT
@@ -748,7 +771,7 @@ LANGUAGE plpgsql
 AS $BODY$
 DECLARE
     _user_role_id INTEGER;
-BEGIN    
+BEGIN
     IF NOT EXISTS (SELECT 1 FROM users u WHERE u.id = _user_id) THEN
         RAISE EXCEPTION 'User does not exist';
     END IF;
